@@ -3,73 +3,127 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Documentos confidenciales | Grupo Numart</title>
-  <link rel="icon" type="image/png" href="https://imagenes.numart.com.co/favicon.ico">
+    <link rel="icon" type="image/png" href="https://imagenes.numart.com.co/favicon.ico">
 
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             height: 100vh;
             background: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            background-color: white;
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            padding: 0 1rem;
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 3.5rem;
+        }
+
+        .logo img {
+            height: 32px;
+            width: auto;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-toggle svg {
+            width: 24px;
+            height: 24px;
+            color: #374151;
         }
 
         .container {
             display: flex;
-            height: 100vh;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
         }
 
         /* Sidebar */
         .sidebar {
+            position: fixed;
+            top: 3.5rem;
+            left: 0;
+            bottom: 0;
             width: 280px;
             background: white;
             border-right: 1px solid #e5e7eb;
             display: flex;
             flex-direction: column;
+            z-index: 90;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 3.5rem;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 80;
+            display: none;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
         }
 
         .sidebar-header {
             padding: 1rem;
             border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
         }
 
         .sidebar-header h2 {
-            font-size: 0.875rem;
+            font-size: 0.9375rem;
             font-weight: 600;
             color: #111827;
-            margin-bottom: 0.75rem;
-        }
-
-        .add-pdf-btn {
-            width: 100%;
-            padding: 0.5rem;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 0.375rem;
-            cursor: pointer;
-            font-size: 0.875rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .add-pdf-btn:hover {
-            background: #1d4ed8;
         }
 
         .sidebar-content {
             flex: 1;
             overflow-y: auto;
             padding: 0.5rem;
+            -webkit-overflow-scrolling: touch;
         }
 
         .folder {
@@ -80,21 +134,28 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.5rem;
+            padding: 0.75rem;
             cursor: pointer;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
+            border-radius: 0.5rem;
+            font-size: 0.9375rem;
             color: #374151;
+            font-weight: 500;
+            user-select: none;
         }
 
         .folder-header:hover {
             background: #f3f4f6;
         }
 
+        .folder-header:active {
+            background: #e5e7eb;
+        }
+
         .folder-icon {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             transition: transform 0.2s;
+            flex-shrink: 0;
         }
 
         .folder.open .folder-icon {
@@ -104,6 +165,7 @@
         .folder-content {
             margin-left: 1.5rem;
             display: none;
+            margin-top: 0.25rem;
         }
 
         .folder.open .folder-content {
@@ -114,26 +176,33 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.5rem;
+            padding: 0.75rem;
             cursor: pointer;
-            border-radius: 0.375rem;
+            border-radius: 0.5rem;
             font-size: 0.875rem;
             color: #374151;
             position: relative;
+            margin-bottom: 0.25rem;
+            user-select: none;
         }
 
         .document-item:hover {
             background: #f3f4f6;
         }
 
+        .document-item:active {
+            background: #e5e7eb;
+        }
+
         .document-item.active {
             background: #eff6ff;
             color: #2563eb;
+            font-weight: 500;
         }
 
         .document-icon {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             flex-shrink: 0;
         }
 
@@ -142,24 +211,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-        }
-
-        .document-size {
-            font-size: 0.75rem;
-            color: #9ca3af;
-        }
-
-        .delete-doc-btn {
-            opacity: 0;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0.25rem;
-            color: #ef4444;
-        }
-
-        .document-item:hover .delete-doc-btn {
-            opacity: 1;
+            line-height: 1.4;
         }
 
         /* Main Content */
@@ -168,27 +220,39 @@
             display: flex;
             flex-direction: column;
             background: #f9fafb;
+            overflow: hidden;
+            width: 100%;
         }
 
         .viewer-header {
             background: white;
             border-bottom: 1px solid #e5e7eb;
-            padding: 0.75rem 1.5rem;
+            padding: 0.75rem 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 0.5rem;
         }
 
         .viewer-title {
             font-size: 0.875rem;
-            font-weight: 500;
+            font-weight: 600;
             color: #111827;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
         }
 
         .viewer-controls {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .desktop-controls {
+            display: none;
         }
 
         .control-group {
@@ -200,18 +264,25 @@
         .control-btn {
             background: white;
             border: 1px solid #d1d5db;
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            border-radius: 0.375rem;
-            transition: background 0.2s;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
         }
 
         .control-btn:hover:not(:disabled) {
             background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+
+        .control-btn:active:not(:disabled) {
+            background: #f3f4f6;
+            transform: scale(0.95);
         }
 
         .control-btn:disabled {
@@ -220,46 +291,43 @@
         }
 
         .control-btn svg {
-            width: 16px;
-            height: 16px;
+            width: 20px;
+            height: 20px;
             color: #374151;
-        }
-
-        .page-info {
-            font-size: 0.875rem;
-            color: #374151;
-            min-width: 80px;
-            text-align: center;
         }
 
         .zoom-info {
             font-size: 0.875rem;
             color: #374151;
-            min-width: 60px;
+            min-width: 50px;
             text-align: center;
+            font-weight: 500;
+        }
+
+        .divider {
+            width: 1px;
+            height: 24px;
+            background: #e5e7eb;
         }
 
         .viewer-content {
             flex: 1;
             overflow: auto;
-            padding: 1.5rem;
             display: flex;
             justify-content: center;
             align-items: flex-start;
+            -webkit-overflow-scrolling: touch;
         }
 
         .pdf-viewer-wrapper {
             width: 100%;
-            max-width: 900px;
             background: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border-radius: 0.5rem;
-            overflow: hidden;
+            height: 100%;
         }
 
         .pdf-iframe {
             width: 100%;
-            height: 800px;
+            height: 100%;
             border: none;
             display: block;
         }
@@ -267,7 +335,7 @@
         .empty-state {
             text-align: center;
             color: #6b7280;
-            padding: 4rem 2rem;
+            padding: 3rem 1.5rem;
         }
 
         .empty-state svg {
@@ -279,176 +347,339 @@
 
         .empty-state h3 {
             font-size: 1.125rem;
-            font-weight: 500;
+            font-weight: 600;
             margin-bottom: 0.5rem;
             color: #374151;
         }
 
         .empty-state p {
             font-size: 0.875rem;
+            color: #6b7280;
         }
 
-        /* Modal */
-        .modal {
-            display: none;
+        /* Controles de zoom móvil */
+        .mobile-zoom-controls {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
+            bottom: 1rem;
+            right: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 50;
+        }
+
+        .mobile-zoom-btn {
+            background: white;
+            border: 1px solid #d1d5db;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .modal-header h3 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #111827;
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
             cursor: pointer;
-            color: #6b7280;
-            font-size: 1.5rem;
-            line-height: 1;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #374151;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
-            font-family: inherit;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #2563eb;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 0.75rem;
-            justify-content: flex-end;
-            margin-top: 1.5rem;
-        }
-
-        .btn-secondary {
-            padding: 0.5rem 1rem;
-            background: white;
-            color: #374151;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-            cursor: pointer;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .btn-secondary:hover {
-            background: #f9fafb;
-        }
-
-        .btn-primary {
-            padding: 0.5rem 1rem;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 0.375rem;
-            cursor: pointer;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .btn-primary:hover {
-            background: #1d4ed8;
-        }
-
-        .file-upload-area {
-            border: 2px dashed #d1d5db;
-            border-radius: 0.5rem;
-            padding: 2rem;
-            text-align: center;
-            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             transition: all 0.2s;
         }
 
-        .file-upload-area:hover {
-            border-color: #2563eb;
-            background: #f9fafb;
+        .mobile-zoom-btn:active:not(:disabled) {
+            transform: scale(0.9);
+            background: #f3f4f6;
         }
 
-        .file-upload-area svg {
-            width: 48px;
-            height: 48px;
-            margin: 0 auto 1rem;
-            color: #9ca3af;
+        .mobile-zoom-btn:disabled {
+            opacity: 0.3;
         }
 
-        .divider {
-            text-align: center;
-            margin: 1rem 0;
-            color: #6b7280;
+        .mobile-zoom-btn svg {
+            width: 24px;
+            height: 24px;
+            color: #374151;
+        }
+
+        .zoom-indicator {
+            background: white;
+            border: 1px solid #d1d5db;
+            padding: 0.375rem 0.75rem;
+            border-radius: 1.5rem;
             font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            text-align: center;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .footer-content {
+            padding: 2rem 1rem;
+        }
+
+        .footer-logo {
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-logo img {
+            width: auto;
+            height: 28px;
+        }
+
+        .footer-bottom {
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            font-size: 0.8125rem;
+            color: #4b5563;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links a {
+            color: #4b5563;
+            text-decoration: none;
+        }
+
+        .footer-links a:active {
+            color: #111827;
+        }
+
+        .footer-copyright {
+            margin-bottom: 1rem;
+        }
+
+        .language-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8125rem;
+            color: #4b5563;
+            padding: 0;
+        }
+
+        /* Ajustes para pantallas pequeñas */
+        @media (max-width: 360px) {
+            .sidebar {
+                width: 100%;
+            }
+
+            .viewer-title {
+                font-size: 0.8125rem;
+            }
+
+            .control-btn {
+                width: 36px;
+                height: 36px;
+            }
+
+            .control-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+        }
+
+        /* RESPONSIVE - TABLET Y DESKTOP (768px+) */
+        @media (min-width: 768px) {
+            .header-inner {
+                height: 4rem;
+                padding: 0 1.5rem;
+            }
+
+            .logo img {
+                height: 40px;
+            }
+
+            /* Ocultar menú hamburguesa */
+            .menu-toggle {
+                display: none;
+            }
+
+            /* Sidebar fija en desktop */
+            .sidebar {
+                position: relative;
+                top: 0;
+                width: 300px;
+                transform: translateX(0);
+                transition: none;
+                flex-shrink: 0;
+            }
+
+            .sidebar-overlay {
+                display: none !important;
+            }
+
+            .sidebar-header {
+                padding: 1.25rem;
+            }
+
+            .sidebar-header h2 {
+                font-size: 1rem;
+            }
+
+            /* Header del visor */
+            .viewer-header {
+                padding: 0.875rem 1.5rem;
+            }
+
+            .viewer-title {
+                font-size: 0.9375rem;
+                max-width: 500px;
+            }
+
+            /* Mostrar controles de desktop */
+            .desktop-controls {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            /* Ocultar controles flotantes de móvil */
+            .mobile-zoom-controls {
+                display: none !important;
+            }
+
+            .control-btn {
+                width: 36px;
+                height: 36px;
+            }
+
+            .control-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .zoom-info {
+                min-width: 80px;
+            }
+
+            /* Viewer content con padding */
+            .viewer-content {
+                padding: 2rem;
+            }
+
+            .pdf-viewer-wrapper {
+                max-width: 1000px;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                border-radius: 0.5rem;
+                overflow: hidden;
+            }
+
+            .pdf-iframe {
+                height: 850px;
+            }
+
+            .empty-state {
+                padding: 4rem 2rem;
+            }
+
+            .empty-state svg {
+                width: 80px;
+                height: 80px;
+                margin-bottom: 1.5rem;
+            }
+
+            .empty-state h3 {
+                font-size: 1.25rem;
+            }
+
+            .empty-state p {
+                font-size: 0.9375rem;
+            }
+
+            /* Footer desktop */
+            .footer-content {
+                max-width: 80rem;
+                margin-left: auto;
+                margin-right: auto;
+                padding: 3rem 1.5rem;
+            }
+
+            .footer-logo img {
+                height: 35px;
+                margin-bottom: 15px;
+            }
+
+            .footer-bottom {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1rem;
+                padding-top: 2rem;
+                font-size: 0.875rem;
+            }
+
+            .footer-links {
+                flex-direction: row;
+                align-items: center;
+                gap: 1rem;
+                margin-bottom: 0;
+            }
+
+            .footer-links a:hover {
+                color: #111827;
+            }
+
+            .footer-copyright {
+                margin-bottom: 0;
+            }
+
+            .language-btn {
+                font-size: 0.875rem;
+            }
+
+            .language-btn:hover {
+                color: #111827;
+            }
+        }
+
+        /* RESPONSIVE - DESKTOP GRANDE (1024px+) */
+        @media (min-width: 1024px) {
+            .header-content {
+                max-width: 80rem;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .viewer-content {
+                padding: 2.5rem;
+            }
         }
     </style>
 </head>
 
 <body>
-    <header style="background-color:white; border-bottom:1px solid #e5e7eb; position:sticky; top:0; z-index:50;">
-        <div style="max-width:80rem; margin-left:auto; margin-right:auto;">
-            <div style="display:flex; align-items:center; justify-content:space-between; height:4rem;">
-                <div style="display:flex; align-items:center; gap:2rem;">
-                    <div style="font-size:1.5rem; font-weight:700;">
-                        <img style="" src="https://pub-03d0689f896f4c1b96c0eadaaff42219.r2.dev/logo-light-numart.png"
-                            alt="Numart Logo">
-                    </div>
+    <header>
+        <div class="header-content">
+            <div class="header-inner">
+                <button class="menu-toggle" id="menuToggle">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                <div class="logo">
+                    <img src="https://pub-03d0689f896f4c1b96c0eadaaff42219.r2.dev/logo-light-numart.png"
+                        alt="Numart Logo">
                 </div>
+                <div style="width: 40px;"></div>
             </div>
         </div>
     </header>
+
     <div class="container">
+        <!-- Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h2>ICFES 2025-2</h2>
             </div>
@@ -462,39 +693,27 @@
             <div class="viewer-header">
                 <div class="viewer-title" id="viewerTitle">Selecciona un documento</div>
                 <div class="viewer-controls">
-                    <div class="control-group">
-                        <button class="control-btn" id="prevPage" disabled>
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 19l-7-7 7-7"></path>
-                            </svg>
-                        </button>
-                        <span class="page-info" id="pageInfo">-</span>
-                        <button class="control-btn" id="nextPage" disabled>
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
-                                </path>
-                            </svg>
-                        </button>
+                    <!-- Controles Desktop -->
+                    <div class="desktop-controls">
+                        <div class="control-group">
+                            <button class="control-btn" id="zoomOut" disabled title="Reducir zoom">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"></path>
+                                </svg>
+                            </button>
+                            <span class="zoom-info" id="zoomInfo">100%</span>
+                            <button class="control-btn" id="zoomIn" disabled title="Aumentar zoom">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="divider"></div>
                     </div>
-                    <div style="width: 1px; height: 24px; background: #e5e7eb;"></div>
-                    <div class="control-group">
-                        <button class="control-btn" id="zoomOut" disabled>
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"></path>
-                            </svg>
-                        </button>
-                        <span class="zoom-info" id="zoomInfo">100%</span>
-                        <button class="control-btn" id="zoomIn" disabled>
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path>
-                            </svg>
-                        </button>
-                    </div>
-                    <div style="width: 1px; height: 24px; background: #e5e7eb;"></div>
-                    <button class="control-btn" id="downloadBtn" disabled>
+                    <!-- Botón de descarga (visible en ambos) -->
+                    <button class="control-btn" id="downloadBtn" disabled title="Descargar">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
@@ -510,98 +729,47 @@
                         </path>
                     </svg>
                     <h3>No hay documento seleccionado</h3>
-                    <p>Selecciona un PDF de la lista o agrega uno nuevo</p>
+                    <p id="emptyMessage">Toca el menú para ver la lista de documentos</p>
                 </div>
+            </div>
+
+            <!-- Controles de zoom móvil (solo visibles en móvil) -->
+            <div class="mobile-zoom-controls" id="mobileZoomControls" style="display: none;">
+                <button class="mobile-zoom-btn" id="mobileZoomIn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path>
+                    </svg>
+                </button>
+                <div class="zoom-indicator" id="mobileZoomInfo">100%</div>
+                <button class="mobile-zoom-btn" id="mobileZoomOut">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"></path>
+                    </svg>
+                </button>
             </div>
         </main>
     </div>
 
-    <!-- Modal para agregar PDF -->
-    <div class="modal" id="addModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Agregar PDF</h3>
-                <button class="close-modal" onclick="closeAddModal()">&times;</button>
-            </div>
+    <footer>
+        <div class="footer-content">
+            <a href="https://numart.com.co" class="footer-logo">
+                <img src="https://pub-03d0689f896f4c1b96c0eadaaff42219.r2.dev/footer-logo.png" alt="Numart Logo">
+            </a>
 
-            <div class="form-group">
-                <label>Nombre del documento</label>
-                <input type="text" id="pdfName" placeholder="Ej: Documento importante">
-            </div>
-
-            <div class="form-group">
-                <label>Carpeta</label>
-                <select id="pdfFolder">
-                </select>
-            </div>
-
-            <div class="divider">O</div>
-
-            <div class="form-group">
-                <label>URL del PDF</label>
-                <input type="url" id="pdfUrl" placeholder="https://ejemplo.com/archivo.pdf">
-            </div>
-
-            <div class="divider">O</div>
-
-            <div class="form-group">
-                <label>Cargar archivo local</label>
-                <div class="file-upload-area" onclick="document.getElementById('fileInput').click()">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
-                        </path>
-                    </svg>
-                    <p>Haz clic para seleccionar o arrastra aquí</p>
+            <div class="footer-bottom">
+                <div class="footer-links">
+                    <span class="footer-copyright">© 2026 Numart</span>
+                    <a href="https://help.numart.com.co/privacidad">Privacidad</a>
+                    <a href="https://help.numart.com.co/terminos-y-condiciones">Términos y condiciones</a>
+                    <a href="https://legal.numart.com.co/">Legales</a>
                 </div>
-                <input type="file" id="fileInput" accept=".pdf,application/pdf" style="display: none;"
-                    onchange="handleFileSelect(event)">
+                <button class="language-btn">🇪🇸 Español</button>
             </div>
-
-            <div class="form-actions">
-                <button class="btn-secondary" onclick="closeAddModal()">Cancelar</button>
-                <button class="btn-primary" onclick="addPDF()">Agregar</button>
-            </div>
-        </div>
-    </div>
-    <footer style="background-color:#f9fafb; border-top:1px solid #e5e7eb;">
-        <div style="max-width:80rem; margin-left:auto; margin-right:auto; padding:3rem 1.5rem;">
-
-            <div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:2rem; margin-bottom:2rem;">
-
-                <div>
-                    <a href="https://numart.com.co">
-                        <img style="width:auto;height:35px;margin-bottom:15px;"
-                            src="https://pub-03d0689f896f4c1b96c0eadaaff42219.r2.dev/footer-logo.png" alt="Numart Logo">
-                    </a>
-                </div>
-
-
-
-            </div>
-
-            <div
-                style="padding-top:2rem; border-top:1px solid #e5e7eb; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem; font-size:0.875rem; color:#4b5563;">
-
-                <div style="display:flex; flex-wrap:wrap; align-items:center; gap:1rem;">
-                    <span>© 2026 Numart</span>
-                    <a href="https://help.numart.com.co/privacidad"
-                        style="color:#4b5563; text-decoration:none;">Privacidad</a>
-                    <a href="https://help.numart.com.co/terminos-y-condiciones"
-                        style="color:#4b5563; text-decoration:none;">Términos y condiciones</a>
-                    <a href="https://legal.numart.com.co/" style="color:#4b5563; text-decoration:none;">Legales</a>
-                </div>
-
-                <div>
-                    <button style="background:none; border:none; cursor:pointer; font-size:0.875rem; color:#4b5563;">
-                        🇪🇸 Español
-                    </button>
-                </div>
-
-            </div>
-
         </div>
     </footer>
+
     <script>
         // Estado de la aplicación
         let documents = {
@@ -612,80 +780,114 @@
         };
         let currentDocument = null;
         let currentZoom = 100;
+        let isMobile = window.innerWidth < 768;
 
-        // Inicializar con algunos PDFs de ejemplo
+        // Elementos DOM
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const menuToggle = document.getElementById('menuToggle');
+
+        // Actualizar mensaje según dispositivo
+        function updateEmptyMessage() {
+            const emptyMessage = document.getElementById('emptyMessage');
+            if (window.innerWidth < 768) {
+                emptyMessage.textContent = 'Toca el menú para ver la lista de documentos';
+            } else {
+                emptyMessage.textContent = 'Selecciona un PDF de la lista para comenzar';
+            }
+        }
+
+        // Toggle sidebar (solo en móvil)
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            sidebarOverlay.classList.toggle('active');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+        });
+
+        // Detectar cambio de tamaño de ventana
+        window.addEventListener('resize', () => {
+            const wasMobile = isMobile;
+            isMobile = window.innerWidth < 768;
+
+            if (wasMobile !== isMobile) {
+                updateEmptyMessage();
+                // Si cambió a desktop, cerrar sidebar móvil
+                if (!isMobile) {
+                    sidebar.classList.remove('open');
+                    sidebarOverlay.classList.remove('active');
+                }
+            }
+        });
+
+        // Inicializar con PDFs
         function init() {
-            // Agregar el PDF por defecto
+            updateEmptyMessage();
+
             documents['Los Tres Editores'].push({
                 id: 1,
                 name: 'Prueba FINAL GRADO ONCE C (SESIÓN 1)',
                 url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/Prueba%20FINAL%20GRADO%20ONCE%20C%20(SESI%C3%93N%201).pdf',
-                folder: 'Los Tres Editores',
-                size: 'N/A'
+                folder: 'Los Tres Editores'
             });
             documents['Los Tres Editores'].push({
                 id: 2,
                 name: 'Prueba FINAL GRADO ONCE C (SESIÓN 2)',
                 url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/Prueba%20FINAL%20GRADO%20ONCE%20C%20(SESI%C3%93N%202).pdf',
-                folder: 'Los Tres Editores',
-                size: 'N/A'
+                folder: 'Los Tres Editores'
             });
             documents['Los Tres Editores'].push({
                 id: 3,
                 name: 'Prueba FINAL GRADO ONCE 7 (SESIÓN 1)',
                 url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/Prueba%20FINAL%20GRADO%20ONCE%207%20(SESI%C3%93N%201)_0001.pdf',
-                folder: 'Los Tres Editores',
-                size: 'N/A'
+                folder: 'Los Tres Editores'
             });
             documents['Los Tres Editores'].push({
                 id: 4,
                 name: 'Prueba FINAL GRADO ONCE 7 (SESIÓN 2)',
                 url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/Prueba%20FINAL%20GRADO%20ONCE%207%20(SESI%C3%93N%202).pdf',
-                folder: 'Los Tres Editores',
-                size: 'N/A'
+                folder: 'Los Tres Editores'
             });
             documents['Los Tres Editores'].push({
                 id: 5,
                 name: 'Prueba FINAL GRADO ONCE D (SESIÓN 2)',
                 url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/Prueba%20FINAL%20GRADO%20ONCE%20D%20(Sesi%C3%B3n%202).pdf',
-                folder: 'Los Tres Editores',
-                size: 'N/A'
+                folder: 'Los Tres Editores'
             });
 
             documents['Grupo Educate'].push({
                 id: 6,
                 name: 'PRUEBA SABER LAB 11° - PI (SESIÓN 1)',
                 url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/PRUEBA%20SABER%20LAB%2011%C2%B0%20-%20PI%20(SESI%C3%93N%201).pdf',
-                folder: 'Grupo Educate',
-                size: 'N/A'
+                folder: 'Grupo Educate'
             });
             documents['Grupo Educate'].push({
                 id: 7,
                 name: 'PRUEBA SABER LAB 11° - PI (SESIÓN 2)',
                 url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/PRUEBA%20SABER%20LAB%2011%C2%B0%20-%20PI%20(SESI%C3%93N%202).pdf',
-                folder: 'Grupo Educate',
-                size: 'N/A'
+                folder: 'Grupo Educate'
             });
             documents['Filtrados 2025'].push({
                 id: 8,
                 name: 'Filtrados 2025 | SESIÓN 1',
                 url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/Grupo%20fe%CC%81nix%20primera%20sesio%CC%81n%20%20FILTRADO%20AGOSTOO%2010-08-2025%20(1).pdf',
-                folder: 'Filtrados 2025',
-                size: 'N/A'
+                folder: 'Filtrados 2025'
             });
-             documents['Filtrados 2025'].push({
+
+            documents['Filtrados 2025'].push({
                 id: 9,
                 name: 'Filtrados 2025 | SESIÓN 2',
                 url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/LE%20ATINAMOS%20A%20TODO%20%20SESIO%CC%81N%202-%20GRUPO%20FENIX%20(1)%20(1).pdf',
-                folder: 'Filtrados 2025',
-                size: 'N/A'
+                folder: 'Filtrados 2025'
             });
             documents['Respuestas'].push({
                 id: 10,
                 name: 'Respuesta Prueba FINAL GRADO ONCE 7',
                 url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/RESPUESTAS%20PRUEBA%20FINAL%20ONCE%207%20VERSION%202.pdf',
-                folder: 'Respuestas',
-                size: 'N/A'
+                folder: 'Respuestas'
             });
             renderDocumentList();
         }
@@ -709,9 +911,8 @@
                     <svg class="folder-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
-                    <svg style="width: 16px; height: 16px; color: #fbbf24;" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M3 4a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V4z"></path>
-                        <path d="M13 4a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2h-6a2 2 0 01-2-2V4z"></path>
+                    <svg style="width: 18px; height: 18px; color: #fbbf24;" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path>
                     </svg>
                     <span>${folderName}</span>
                 `;
@@ -727,12 +928,7 @@
                         <svg class="document-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
-                        <span class="document-name">${doc.name}</span>
-                        <button class="delete-doc-btn" onclick="deleteDocument(event, ${doc.id}, '${folderName}')">
-                            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                        </button>
+                        <span class="document-name" title="${doc.name}">${doc.name}</span>
                     `;
                     folderContent.appendChild(docItem);
                 });
@@ -748,6 +944,12 @@
             currentDocument = doc;
             currentZoom = 100;
 
+            // Cerrar sidebar si está en móvil
+            if (window.innerWidth < 768) {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('active');
+            }
+
             document.getElementById('viewerTitle').textContent = doc.name;
 
             const viewerContent = document.getElementById('viewerContent');
@@ -758,95 +960,59 @@
             `;
 
             // Habilitar controles
+            document.getElementById('downloadBtn').disabled = false;
             document.getElementById('zoomIn').disabled = false;
             document.getElementById('zoomOut').disabled = false;
-            document.getElementById('downloadBtn').disabled = false;
+            document.getElementById('mobileZoomIn').disabled = false;
+            document.getElementById('mobileZoomOut').disabled = false;
+            document.getElementById('zoomInfo').textContent = '100%';
+            document.getElementById('mobileZoomInfo').textContent = '100%';
+            document.getElementById('mobileZoomControls').style.display = 'flex';
 
             // Actualizar UI
             renderDocumentList();
         }
 
-        // Modal
-        function openAddModal() {
-            document.getElementById('addModal').classList.add('active');
-        }
-
-        function closeAddModal() {
-            document.getElementById('addModal').classList.remove('active');
-            document.getElementById('pdfName').value = '';
-            document.getElementById('pdfUrl').value = '';
-            document.getElementById('fileInput').value = '';
-        }
-
-        // Agregar PDF
-        function addPDF() {
-            const name = document.getElementById('pdfName').value;
-            const url = document.getElementById('pdfUrl').value;
-            const folder = document.getElementById('pdfFolder').value;
-
-            if (!name || !url) {
-                alert('Por favor, completa el nombre y la URL del PDF');
-                return;
-            }
-
-            const newDoc = {
-                id: Date.now(),
-                name: name,
-                url: url,
-                folder: folder,
-                size: 'N/A'
-            };
-
-            documents[folder].push(newDoc);
-            renderDocumentList();
-            closeAddModal();
-
-            // Abrir automáticamente el nuevo documento
-            openDocument(newDoc);
-        }
-
-        // Manejar archivo local
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (file && file.type === 'application/pdf') {
-                document.getElementById('pdfName').value = file.name.replace('.pdf', '');
-
-                // Crear URL local para el archivo
-                const fileUrl = URL.createObjectURL(file);
-                document.getElementById('pdfUrl').value = fileUrl;
-            }
-        }
-
-        // Eliminar documento
-        function deleteDocument(event, docId, folderName) {
-
-        }
-
-        // Controles de zoom
-        document.getElementById('zoomIn').addEventListener('click', () => {
+        // Controles de zoom (compartidos por ambos)
+        function zoomIn() {
             currentZoom = Math.min(currentZoom + 10, 200);
             updateZoom();
-        });
+        }
 
-        document.getElementById('zoomOut').addEventListener('click', () => {
+        function zoomOut() {
             currentZoom = Math.max(currentZoom - 10, 50);
             updateZoom();
-        });
+        }
 
         function updateZoom() {
             document.getElementById('zoomInfo').textContent = currentZoom + '%';
+            document.getElementById('mobileZoomInfo').textContent = currentZoom + '%';
             const iframe = document.getElementById('pdfIframe');
             if (iframe) {
                 iframe.style.transform = `scale(${currentZoom / 100})`;
                 iframe.style.transformOrigin = 'top center';
+                if (window.innerWidth < 768) {
+                    iframe.style.height = `${850 * (currentZoom / 100)}px`;
+                }
             }
         }
+
+        // Event listeners de zoom
+        document.getElementById('zoomIn').addEventListener('click', zoomIn);
+        document.getElementById('zoomOut').addEventListener('click', zoomOut);
+        document.getElementById('mobileZoomIn').addEventListener('click', zoomIn);
+        document.getElementById('mobileZoomOut').addEventListener('click', zoomOut);
 
         // Descargar PDF
         document.getElementById('downloadBtn').addEventListener('click', () => {
             if (currentDocument) {
                 window.open(currentDocument.url, '_blank');
             }
+        });
+
+        // Prevenir zoom del navegador en dispositivos móviles
+        document.addEventListener('gesturestart', function (e) {
+            e.preventDefault();
         });
 
         // Inicializar
