@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentos confidenciales | Grupo Numart</title>
+  <link rel="icon" type="image/png" href="https://imagenes.numart.com.co/favicon.ico">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            height: 100vh;
+            background: #f5f5f5;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .sidebar-header h2 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.75rem;
+        }
+
+        .add-pdf-btn {
+            width: 100%;
+            padding: 0.5rem;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .add-pdf-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .folder {
+            margin-bottom: 0.5rem;
+        }
+
+        .folder-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+
+        .folder-header:hover {
+            background: #f3f4f6;
+        }
+
+        .folder-icon {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.2s;
+        }
+
+        .folder.open .folder-icon {
+            transform: rotate(90deg);
+        }
+
+        .folder-content {
+            margin-left: 1.5rem;
+            display: none;
+        }
+
+        .folder.open .folder-content {
+            display: block;
+        }
+
+        .document-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            color: #374151;
+            position: relative;
+        }
+
+        .document-item:hover {
+            background: #f3f4f6;
+        }
+
+        .document-item.active {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+
+        .document-icon {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .document-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .document-size {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+
+        .delete-doc-btn {
+            opacity: 0;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.25rem;
+            color: #ef4444;
+        }
+
+        .document-item:hover .delete-doc-btn {
+            opacity: 1;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f9fafb;
+        }
+
+        .viewer-header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .viewer-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #111827;
+        }
+
+        .viewer-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .control-btn {
+            background: white;
+            border: 1px solid #d1d5db;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 0.375rem;
+            transition: background 0.2s;
+        }
+
+        .control-btn:hover:not(:disabled) {
+            background: #f3f4f6;
+        }
+
+        .control-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .control-btn svg {
+            width: 16px;
+            height: 16px;
+            color: #374151;
+        }
+
+        .page-info {
+            font-size: 0.875rem;
+            color: #374151;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .zoom-info {
+            font-size: 0.875rem;
+            color: #374151;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .viewer-content {
+            flex: 1;
+            overflow: auto;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .pdf-viewer-wrapper {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .pdf-iframe {
+            width: 100%;
+            height: 800px;
+            border: none;
+            display: block;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #6b7280;
+            padding: 4rem 2rem;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1rem;
+            color: #d1d5db;
+        }
+
+        .empty-state h3 {
+            font-size: 1.125rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+
+        .empty-state p {
+            font-size: 0.875rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #6b7280;
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        .btn-secondary {
+            padding: 0.5rem 1rem;
+            background: white;
+            color: #374151;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .btn-secondary:hover {
+            background: #f9fafb;
+        }
+
+        .btn-primary {
+            padding: 0.5rem 1rem;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-upload-area:hover {
+            border-color: #2563eb;
+            background: #f9fafb;
+        }
+
+        .file-upload-area svg {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 1rem;
+            color: #9ca3af;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 1rem 0;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header style="background-color:white; border-bottom:1px solid #e5e7eb; position:sticky; top:0; z-index:50;">
+        <div style="max-width:80rem; margin-left:auto; margin-right:auto;">
+            <div style="display:flex; align-items:center; justify-content:space-between; height:4rem;">
+                <div style="display:flex; align-items:center; gap:2rem;">
+                    <div style="font-size:1.5rem; font-weight:700;">
+                        <img style="" src="https://pub-03d0689f896f4c1b96c0eadaaff42219.r2.dev/logo-light-numart.png"
+                            alt="Numart Logo">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>ICFES 2025-2</h2>
+            </div>
+            <div class="sidebar-content" id="documentList">
+                <!-- Documentos se agregarán aquí dinámicamente -->
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="viewer-header">
+                <div class="viewer-title" id="viewerTitle">Selecciona un documento</div>
+                <div class="viewer-controls">
+                    <div class="control-group">
+                        <button class="control-btn" id="prevPage" disabled>
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        <span class="page-info" id="pageInfo">-</span>
+                        <button class="control-btn" id="nextPage" disabled>
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
+                                </path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div style="width: 1px; height: 24px; background: #e5e7eb;"></div>
+                    <div class="control-group">
+                        <button class="control-btn" id="zoomOut" disabled>
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"></path>
+                            </svg>
+                        </button>
+                        <span class="zoom-info" id="zoomInfo">100%</span>
+                        <button class="control-btn" id="zoomIn" disabled>
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div style="width: 1px; height: 24px; background: #e5e7eb;"></div>
+                    <button class="control-btn" id="downloadBtn" disabled>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="viewer-content" id="viewerContent">
+                <div class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg>
+                    <h3>No hay documento seleccionado</h3>
+                    <p>Selecciona un PDF de la lista o agrega uno nuevo</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para agregar PDF -->
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Agregar PDF</h3>
+                <button class="close-modal" onclick="closeAddModal()">&times;</button>
+            </div>
+
+            <div class="form-group">
+                <label>Nombre del documento</label>
+                <input type="text" id="pdfName" placeholder="Ej: Documento importante">
+            </div>
+
+            <div class="form-group">
+                <label>Carpeta</label>
+                <select id="pdfFolder">
+                </select>
+            </div>
+
+            <div class="divider">O</div>
+
+            <div class="form-group">
+                <label>URL del PDF</label>
+                <input type="url" id="pdfUrl" placeholder="https://ejemplo.com/archivo.pdf">
+            </div>
+
+            <div class="divider">O</div>
+
+            <div class="form-group">
+                <label>Cargar archivo local</label>
+                <div class="file-upload-area" onclick="document.getElementById('fileInput').click()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                        </path>
+                    </svg>
+                    <p>Haz clic para seleccionar o arrastra aquí</p>
+                </div>
+                <input type="file" id="fileInput" accept=".pdf,application/pdf" style="display: none;"
+                    onchange="handleFileSelect(event)">
+            </div>
+
+            <div class="form-actions">
+                <button class="btn-secondary" onclick="closeAddModal()">Cancelar</button>
+                <button class="btn-primary" onclick="addPDF()">Agregar</button>
+            </div>
+        </div>
+    </div>
+    <footer style="background-color:#f9fafb; border-top:1px solid #e5e7eb;">
+        <div style="max-width:80rem; margin-left:auto; margin-right:auto; padding:3rem 1.5rem;">
+
+            <div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:2rem; margin-bottom:2rem;">
+
+                <div>
+                    <a href="https://numart.com.co">
+                        <img style="width:auto;height:35px;margin-bottom:15px;"
+                            src="https://pub-03d0689f896f4c1b96c0eadaaff42219.r2.dev/footer-logo.png" alt="Numart Logo">
+                    </a>
+                </div>
+
+
+
+            </div>
+
+            <div
+                style="padding-top:2rem; border-top:1px solid #e5e7eb; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem; font-size:0.875rem; color:#4b5563;">
+
+                <div style="display:flex; flex-wrap:wrap; align-items:center; gap:1rem;">
+                    <span>© 2026 Numart</span>
+                    <a href="https://help.numart.com.co/privacidad"
+                        style="color:#4b5563; text-decoration:none;">Privacidad</a>
+                    <a href="https://help.numart.com.co/terminos-y-condiciones"
+                        style="color:#4b5563; text-decoration:none;">Términos y condiciones</a>
+                    <a href="https://legal.numart.com.co/" style="color:#4b5563; text-decoration:none;">Legales</a>
+                </div>
+
+                <div>
+                    <button style="background:none; border:none; cursor:pointer; font-size:0.875rem; color:#4b5563;">
+                        🇪🇸 Español
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+    </footer>
+    <script>
+        // Estado de la aplicación
+        let documents = {
+            'Los Tres Editores': [],
+            'Grupo Educate': [],
+            'Respuestas': [],
+            'Filtrados 2025': [],
+        };
+        let currentDocument = null;
+        let currentZoom = 100;
+
+        // Inicializar con algunos PDFs de ejemplo
+        function init() {
+            // Agregar el PDF por defecto
+            documents['Los Tres Editores'].push({
+                id: 1,
+                name: 'Prueba FINAL GRADO ONCE C (SESIÓN 1)',
+                url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/Prueba%20FINAL%20GRADO%20ONCE%20C%20(SESI%C3%93N%201).pdf',
+                folder: 'Los Tres Editores',
+                size: 'N/A'
+            });
+            documents['Los Tres Editores'].push({
+                id: 2,
+                name: 'Prueba FINAL GRADO ONCE C (SESIÓN 2)',
+                url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/Prueba%20FINAL%20GRADO%20ONCE%20C%20(SESI%C3%93N%202).pdf',
+                folder: 'Los Tres Editores',
+                size: 'N/A'
+            });
+            documents['Los Tres Editores'].push({
+                id: 3,
+                name: 'Prueba FINAL GRADO ONCE 7 (SESIÓN 1)',
+                url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/Prueba%20FINAL%20GRADO%20ONCE%207%20(SESI%C3%93N%201)_0001.pdf',
+                folder: 'Los Tres Editores',
+                size: 'N/A'
+            });
+            documents['Los Tres Editores'].push({
+                id: 4,
+                name: 'Prueba FINAL GRADO ONCE 7 (SESIÓN 2)',
+                url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/Prueba%20FINAL%20GRADO%20ONCE%207%20(SESI%C3%93N%202).pdf',
+                folder: 'Los Tres Editores',
+                size: 'N/A'
+            });
+            documents['Los Tres Editores'].push({
+                id: 5,
+                name: 'Prueba FINAL GRADO ONCE D (SESIÓN 2)',
+                url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/Prueba%20FINAL%20GRADO%20ONCE%20D%20(Sesi%C3%B3n%202).pdf',
+                folder: 'Los Tres Editores',
+                size: 'N/A'
+            });
+
+            documents['Grupo Educate'].push({
+                id: 6,
+                name: 'PRUEBA SABER LAB 11° - PI (SESIÓN 1)',
+                url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/PRUEBA%20SABER%20LAB%2011%C2%B0%20-%20PI%20(SESI%C3%93N%201).pdf',
+                folder: 'Grupo Educate',
+                size: 'N/A'
+            });
+            documents['Grupo Educate'].push({
+                id: 7,
+                name: 'PRUEBA SABER LAB 11° - PI (SESIÓN 2)',
+                url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/PRUEBA%20SABER%20LAB%2011%C2%B0%20-%20PI%20(SESI%C3%93N%202).pdf',
+                folder: 'Grupo Educate',
+                size: 'N/A'
+            });
+            documents['Filtrados 2025'].push({
+                id: 8,
+                name: 'Filtrados 2025 | SESIÓN 1',
+                url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/Grupo%20fe%CC%81nix%20primera%20sesio%CC%81n%20%20FILTRADO%20AGOSTOO%2010-08-2025%20(1).pdf',
+                folder: 'Filtrados 2025',
+                size: 'N/A'
+            });
+             documents['Filtrados 2025'].push({
+                id: 9,
+                name: 'Filtrados 2025 | SESIÓN 2',
+                url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/LE%20ATINAMOS%20A%20TODO%20%20SESIO%CC%81N%202-%20GRUPO%20FENIX%20(1)%20(1).pdf',
+                folder: 'Filtrados 2025',
+                size: 'N/A'
+            });
+            documents['Respuestas'].push({
+                id: 10,
+                name: 'Respuesta Prueba FINAL GRADO ONCE 7',
+                url: 'https://pdf.numart.com.co/Pruebas%20Icfes%20Confidencial%20sin%20contrase%C3%B1a/Prueba%20FINAL%20GRADO%20ONCE%207/RESPUESTAS%20PRUEBA%20FINAL%20ONCE%207%20VERSION%202.pdf',
+                folder: 'Respuestas',
+                size: 'N/A'
+            });
+            renderDocumentList();
+        }
+
+        // Renderizar lista de documentos
+        function renderDocumentList() {
+            const container = document.getElementById('documentList');
+            container.innerHTML = '';
+
+            for (const [folderName, docs] of Object.entries(documents)) {
+                const folder = document.createElement('div');
+                folder.className = 'folder open';
+
+                const folderHeader = document.createElement('div');
+                folderHeader.className = 'folder-header';
+                folderHeader.onclick = (e) => {
+                    e.stopPropagation();
+                    folder.classList.toggle('open');
+                };
+                folderHeader.innerHTML = `
+                    <svg class="folder-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                    <svg style="width: 16px; height: 16px; color: #fbbf24;" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M3 4a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V4z"></path>
+                        <path d="M13 4a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2h-6a2 2 0 01-2-2V4z"></path>
+                    </svg>
+                    <span>${folderName}</span>
+                `;
+
+                const folderContent = document.createElement('div');
+                folderContent.className = 'folder-content';
+
+                docs.forEach(doc => {
+                    const docItem = document.createElement('div');
+                    docItem.className = 'document-item' + (currentDocument?.id === doc.id ? ' active' : '');
+                    docItem.onclick = () => openDocument(doc);
+                    docItem.innerHTML = `
+                        <svg class="document-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span class="document-name">${doc.name}</span>
+                        <button class="delete-doc-btn" onclick="deleteDocument(event, ${doc.id}, '${folderName}')">
+                            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    `;
+                    folderContent.appendChild(docItem);
+                });
+
+                folder.appendChild(folderHeader);
+                folder.appendChild(folderContent);
+                container.appendChild(folder);
+            }
+        }
+
+        // Abrir documento
+        function openDocument(doc) {
+            currentDocument = doc;
+            currentZoom = 100;
+
+            document.getElementById('viewerTitle').textContent = doc.name;
+
+            const viewerContent = document.getElementById('viewerContent');
+            viewerContent.innerHTML = `
+                <div class="pdf-viewer-wrapper">
+                    <iframe class="pdf-iframe" src="${doc.url}" id="pdfIframe"></iframe>
+                </div>
+            `;
+
+            // Habilitar controles
+            document.getElementById('zoomIn').disabled = false;
+            document.getElementById('zoomOut').disabled = false;
+            document.getElementById('downloadBtn').disabled = false;
+
+            // Actualizar UI
+            renderDocumentList();
+        }
+
+        // Modal
+        function openAddModal() {
+            document.getElementById('addModal').classList.add('active');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('active');
+            document.getElementById('pdfName').value = '';
+            document.getElementById('pdfUrl').value = '';
+            document.getElementById('fileInput').value = '';
+        }
+
+        // Agregar PDF
+        function addPDF() {
+            const name = document.getElementById('pdfName').value;
+            const url = document.getElementById('pdfUrl').value;
+            const folder = document.getElementById('pdfFolder').value;
+
+            if (!name || !url) {
+                alert('Por favor, completa el nombre y la URL del PDF');
+                return;
+            }
+
+            const newDoc = {
+                id: Date.now(),
+                name: name,
+                url: url,
+                folder: folder,
+                size: 'N/A'
+            };
+
+            documents[folder].push(newDoc);
+            renderDocumentList();
+            closeAddModal();
+
+            // Abrir automáticamente el nuevo documento
+            openDocument(newDoc);
+        }
+
+        // Manejar archivo local
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file && file.type === 'application/pdf') {
+                document.getElementById('pdfName').value = file.name.replace('.pdf', '');
+
+                // Crear URL local para el archivo
+                const fileUrl = URL.createObjectURL(file);
+                document.getElementById('pdfUrl').value = fileUrl;
+            }
+        }
+
+        // Eliminar documento
+        function deleteDocument(event, docId, folderName) {
+
+        }
+
+        // Controles de zoom
+        document.getElementById('zoomIn').addEventListener('click', () => {
+            currentZoom = Math.min(currentZoom + 10, 200);
+            updateZoom();
+        });
+
+        document.getElementById('zoomOut').addEventListener('click', () => {
+            currentZoom = Math.max(currentZoom - 10, 50);
+            updateZoom();
+        });
+
+        function updateZoom() {
+            document.getElementById('zoomInfo').textContent = currentZoom + '%';
+            const iframe = document.getElementById('pdfIframe');
+            if (iframe) {
+                iframe.style.transform = `scale(${currentZoom / 100})`;
+                iframe.style.transformOrigin = 'top center';
+            }
+        }
+
+        // Descargar PDF
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            if (currentDocument) {
+                window.open(currentDocument.url, '_blank');
+            }
+        });
+
+        // Inicializar
+        init();
+    </script>
+</body>
+
+</html>
